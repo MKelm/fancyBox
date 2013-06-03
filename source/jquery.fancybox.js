@@ -173,8 +173,9 @@
 
 			// Enable default helpers
 			helpers : {
-				overlay : true,
-				title   : true
+				overlay     : true,
+				title       : true,
+        description : true
 			},
 
 			// Callbacks
@@ -244,6 +245,7 @@
 				var obj = {},
 					href,
 					title,
+          description,
 					content,
 					type,
 					rez,
@@ -260,6 +262,7 @@
 						obj = {
 							href    : element.data('fancybox-href') || element.attr('href'),
 							title   : element.data('fancybox-title') || element.attr('title'),
+              description   : element.data('fancybox-description'),
 							isDom   : true,
 							element : element
 						};
@@ -275,6 +278,7 @@
 
 				href  = opts.href  || obj.href || (isString(element) ? element : null);
 				title = opts.title !== undefined ? opts.title : obj.title || '';
+        description = opts.description !== undefined ? opts.description : '';
 
 				content = opts.content || obj.content;
 				type    = content ? 'html' : (opts.type  || obj.type);
@@ -1897,6 +1901,66 @@
 			}
 
 			title[ (opts.position === 'top' ? 'prependTo'  : 'appendTo') ](target);
+		}
+	};
+
+  /*
+	 *	Description helper
+	 */
+
+	F.helpers.description = {
+		defaults : {
+			type     : 'float', // 'float', 'inside', 'outside' or 'over',
+			position : 'bottom' // 'top' or 'bottom'
+		},
+
+		beforeShow: function (opts) {
+			var current = F.current,
+				text    = current.description,
+				type    = opts.type,
+				description,
+				target;
+
+			if ($.isFunction(text)) {
+				text = text.call(current.element, current);
+			}
+
+			if (!isString(text) || $.trim(text) === '') {
+				return;
+			}
+
+			description = $('<div class="fancybox-description fancybox-description-' + type + '-wrap">' + text + '</div>');
+
+			switch (type) {
+				case 'inside':
+					target = F.skin;
+				break;
+
+				case 'outside':
+					target = F.wrap;
+				break;
+
+				case 'over':
+					target = F.inner;
+				break;
+
+				default: // 'float'
+					target = F.skin;
+
+					description.appendTo('body');
+
+					if (IE) {
+						description.width( title.width() );
+					}
+
+					description.wrapInner('<span class="child"></span>');
+
+					//Increase bottom margin so this title will also fit into viewport
+					F.current.margin[2] += Math.abs( getScalar(description.css('margin-bottom')) );
+				break;
+			}
+
+			description[ (opts.position === 'top' ? 'prependTo'  : 'appendTo') ](target);
 		}
 	};
 
